@@ -39,10 +39,27 @@ class MainActivity : AppCompatActivity() {
             createNaviSettingTipDialog()
         }
 
+    // <editor-fold desc="视图生命周期">
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding.config = BindingConfig()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        if(mRationalDialogFragment.isAdded){
+            mRationalDialogFragment.dismiss()
+        }
+
+        if (mNaviSettingsTipDialogFragment.isAdded){
+            mNaviSettingsTipDialogFragment.dismiss()
+        }
+    }
+
+    // </editor-fold>
+
 
     inner class BindingConfig{
         fun testRequestPermission(){
@@ -169,8 +186,10 @@ class MainActivity : AppCompatActivity() {
      * @param onSuccess 请求权限成功回调
      */
     private fun requestPermissions(vararg permission : String, onSuccess : ()->Unit){
+        //以 kotlin dsl方式直观的构筑权限请求
         mRequestPermissionLauncher.launchRequest {
             permissions = arrayOf(*permission)
+            //仅在权限被拒绝后显示请求理由弹窗
             isShowRationalDialogAfterDefined = true
             rationaleDialogFragment = mRationalDialogFragment
             forwardSettingDialogFragment = mNaviSettingsTipDialogFragment
