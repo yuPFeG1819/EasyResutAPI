@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="easy_result_def_ration_dialog_bg">#ffffff</color>
+    <color name="easy_result_def_ration_dialog_divider">#ededed</color>
+    <color name="easy_result_def_ration_dialog_btn_text_color">#4280FA</color>
+    <color name="easy_result_def_ration_dialog_message_color">#333333</color>
+</resources>

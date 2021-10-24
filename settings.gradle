@@ -1,0 +1,13 @@
+//dependencyResolutionManagement {
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    repositories {
+//        google()
+//        mavenCentral()
+//        //central仓和jcenter仓的聚合仓 参见(https://developer.aliyun.com/mvn/guide)
+//        maven{ url'https://maven.aliyun.com/repository/public'}
+////        jcenter() // Warning: this repository is going to shut down soon
+//    }
+//}
+rootProject.name = "EasyResutAPI"
+include ':app'
+include ':easyResult'
