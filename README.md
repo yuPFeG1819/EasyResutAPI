@@ -12,6 +12,8 @@ Activity Result API的封装库，简化外部调用方式，更符合传统开�
 
 ## 依赖方式
 
+[![](https://jitpack.io/v/com.gitee.yupfeg/easy-result-api.svg)](https://jitpack.io/#com.gitee.yupfeg/easy-result-api)
+
 
 ```groovy
 //root project build.gradle
@@ -46,7 +48,7 @@ dependencies {
 
 - 页面跳转返回 `StartActivityResultLauncher`
 
-  > 同时提供拓展函数，添加了
+  > 同时提供拓展函数，添加了常用的系统页面跳转
 
 - 调起系统相机拍照 `TakePickure`
 
@@ -81,4 +83,5 @@ dependencies {
 ## Thanks
 
 [Activity Result API的封装思路](https://juejin.cn/post/6987575150283587592)
+
 [PermissionX](https://github.com/guolindev/PermissionX)
