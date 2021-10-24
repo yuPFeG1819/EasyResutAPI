@@ -1,14 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    //kotlin替代注解
-    id "kotlin-kapt"
-    // JitPack Maven
-    id "com.github.dcendents.android-maven"
 }
-
-//上传的jitpack仓库group
-group = "com.gitee.yupfeg"
 
 android {
     compileSdk 31
@@ -36,16 +29,11 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
-    //开启dataBinding
-    buildFeatures{
-        dataBinding = true
-    }
 }
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.3.1")
-//    implementation("androidx.core:core-ktx:1.6.0")
+    implementation("androidx.core:core-ktx:1.6.0")
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
 

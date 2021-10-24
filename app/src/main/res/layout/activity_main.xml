@@ -1,82 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
-    <data>
-        <variable
-            name="config"
-            type="com.yupfeg.resulttest.MainActivity.BindingConfig" />
-    </data>
-
-    <ScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:context=".MainActivity"
-            android:orientation="vertical"
-            >
-            <Button
-                android:id="@+id/btn_main_test_system_camera"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="测试请求权限"
-                android:textSize="15sp"
-                android:layout_marginTop="10dp"
-                onViewSingleClick="@{()->config.testRequestPermission()}"
-                />
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="测试ResultAPI跳转"
-                android:textSize="15sp"
-                android:layout_marginTop="10dp"
-                onViewSingleClick="@{()->config.testResultApiStartActivity()}"
-                />
-            <Button
-                android:id="@+id/btn_main_take_picture"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="跳转系统相机"
-                android:textSize="15sp"
-                android:layout_marginTop="10dp"
-                onViewSingleClick="@{()->config.takeSystemPicture()}"
-                />
+        android:layout_height="wrap_content"
+        tools:context=".MainActivity"
+        android:orientation="vertical"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        >
+        <Button
+            android:id="@+id/btn_main_test_request_multi_permission"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="测试请求权限"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+        <Button
+            android:id="@+id/btn_main_test_navi_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="测试ResultAPI跳转"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+        <Button
+            android:id="@+id/btn_main_take_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="调用系统相机"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
 
-            <Button
-                android:id="@+id/btn_main_pick_content"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="跳转Pick Content"
-                android:textSize="15sp"
-                android:textAllCaps="false"
-                android:layout_marginTop="10dp"
-                onViewSingleClick="@{()->config.pickGallery()}"
-                />
+        <Button
+            android:id="@+id/btn_main_pick_content"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Pick Content选择图片"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
 
-            <Button
-                android:id="@+id/btn_main_pick_contact"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="选择联系人"
-                android:textSize="15sp"
-                android:layout_marginTop="10dp"
-                onViewSingleClick="@{()->config.pickContact()}"
-                />
+        <Button
+            android:id="@+id/btn_main_pick_contact"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="选择联系人"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
 
-            <Button
-                android:id="@+id/btn_main_get_image_content"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Get Content选择图片"
-                android:textSize="15sp"
-                android:textAllCaps="false"
-                android:layout_marginTop="10dp"
-                onViewSingleClick="@{()->config.selectImageFromGallery()}"
-                />
+        <Button
+            android:id="@+id/btn_main_get_image_content"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Get Content多选图片"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+
+        <Button
+            android:id="@+id/btn_main_call_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="跳转拨号页面"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
 
 
-        </LinearLayout>
-    </ScrollView>
-</layout>
+    </LinearLayout>
+</ScrollView>

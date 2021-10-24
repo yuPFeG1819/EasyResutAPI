@@ -1,4 +1,4 @@
-package com.yupfeg.resulttest.base
+package com.yupfeg.result.contact
 
 import android.content.Context
 import android.net.Uri

@@ -1,8 +1,6 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    //kotlin替代注解
-    id "kotlin-kapt"
     // JitPack Maven
     id "com.github.dcendents.android-maven"
 }
@@ -36,17 +34,12 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
-    //开启dataBinding
-    buildFeatures{
-        dataBinding = true
-    }
 }
 
 dependencies {
 //    api 'androidx.appcompat:appcompat:1.3.1'
-    api("androidx.activity:activity-ktx:1.3.1")
-    api("androidx.fragment:fragment-ktx:1.3.6")
+    implementation("androidx.activity:activity-ktx:1.3.1")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
 //    implementation("androidx.core:core-ktx:1.6.0")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     testImplementation 'junit:junit:4.13.2'

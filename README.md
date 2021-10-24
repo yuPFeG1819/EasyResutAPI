@@ -28,6 +28,8 @@ dependencies {
 
 ```
 
+
+
 ## 使用
 
 ### 简单使用
@@ -58,9 +60,11 @@ dependencies {
 
 - 权限请求（多权限） `RequestPermissionLauncher`
 
-  > 提供了kotlin dsl方式的请求权限配置`RequestPermissionConfig`
+  > - 由于**Fragment实现了ActivityResultCaller**，所以**不需要利用不可见的Fragment**来间接实现的方式，也可直接在Fragment内请求权限
   >
-  > - 由于**Fragment实现了ActivityResultCaller**，所以不需要其他权限请求框架的利用不可见的Fragment来间接实现的方式，也可直接在Fragment内请求权限
+  > - 提供了kotlin dsl方式的请求权限配置`RequestPermissionConfig`
+  > - 提供默认实现的解释申请权限原因的说明弹窗
+
 
 ### 更多使用场景
 
@@ -77,3 +81,4 @@ dependencies {
 ## Thanks
 
 [Activity Result API的封装思路](https://juejin.cn/post/6987575150283587592)
+[PermissionX](https://github.com/guolindev/PermissionX)
