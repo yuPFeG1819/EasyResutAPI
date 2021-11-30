@@ -9,37 +9,47 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
+import com.yupfeg.result.ext.launchAwaitOrNull
 import com.yupfeg.result.file.FileUriTools
 import java.io.File
 
 /**
  * 系统剪裁图片的配置类
  */
-data class CropImageConfig @JvmOverloads constructor(
-    /**
-     * 需要剪裁的图片uri，通常为相册选择或相机拍照的文件uri,默认为null
-     * * 如果使用图片文件地址，则需要使用[Uri.fromFile]方法转化为uri，注意在Android 7.0以上需要适配FileProvider
-     * */
-    var cropFileUri : Uri? = null,
-    /**剪裁完成后输出的文件，默认为null，使用默认的输出文件地址*/
-    var outputFile : File? = null,
-    /**剪裁框宽度比例*/
-    var aspectX : Int = 1,
-    /**剪裁框高度比例*/
-    var aspectY : Int = 1,
-    /**剪裁输出图片的宽度*/
-    var outputX : Int = DEF_OUT_X,
-    /**剪裁输出推盘的高度*/
-    var outputY : Int = DEF_OUT_Y,
-    /**剪裁图片确认回调，回调剪裁完成后的图片文件对象，如果剪裁失败则为null*/
-    var callBack : ((File?)->Unit) ?= null
-){
+open class CropImageConfig{
     companion object{
         /**默认的系统剪裁输出的x轴像素*/
         private const val DEF_OUT_X = 800
         /**默认的系统剪裁输出的y轴像素*/
         private const val DEF_OUT_Y = 800
     }
+
+    /**
+     * 需要剪裁的图片uri，通常为相册选择或相机拍照的文件uri,默认为null
+     * * 如果使用图片文件地址，则需要使用[Uri.fromFile]方法转化为uri，
+     * 注意在Android 7.0以上需要适配FileProvider
+     * */
+    var cropFileUri : Uri? = null
+    /**剪裁完成后输出的文件，默认为null，使用默认的输出文件地址*/
+    var outputFile : File? = null
+    /**剪裁框宽度比例*/
+    var aspectX : Int = 1
+    /**剪裁框高度比例*/
+    var aspectY : Int = 1
+    /**剪裁输出图片的宽度*/
+    var outputX : Int = DEF_OUT_X
+    /**剪裁输出推盘的高度*/
+    var outputY : Int = DEF_OUT_Y
+}
+
+/**
+ * 系统剪裁图片的回调配置类
+ * */
+class CropImageCallBackConfig : CropImageConfig(){
+    /**
+     * 剪裁图片确认回调，回调剪裁完成后的图片文件对象，如果剪裁失败则为null
+     * */
+    var callBack : ((File?)->Unit) ?= null
 }
 
 /**
@@ -64,15 +74,40 @@ open class CropImageLauncher(
      * 启动跳转到系统剪裁图片页
      * @param init 以kotlin dsl方式配置图片剪裁参数[CropImageConfig]
      * */
-    fun launch(init : CropImageConfig.()->Unit){
+    fun launch(init : CropImageCallBackConfig.()->Unit){
+        val config = CropImageCallBackConfig().also(init)
+        launch(config) { file ->
+            config.callBack?.invoke(file)
+        }
+    }
+
+    /**
+     * 启动跳转到系统剪裁图片页
+     * @param config 剪裁图片配置
+     * */
+    fun launch(config: CropImageConfig){
+        val resultCallBack = (config as? CropImageCallBackConfig)?.callBack
+        config.outputFile?:run {
+            //使用默认输出地址
+            config.outputFile = createCropImgSaveFile()
+        }
+        launch(config){file->
+            resultCallBack?.invoke(file)
+        }
+    }
+
+    /**
+     * 挂起函数，启动系统剪裁页，并挂起等待剪裁结果返回
+     * @param init 以kotlin dsl方式配置图片剪裁参数[CropImageConfig]
+     * @return 剪裁完成后的图片文件对象，如果剪裁失败则为null
+     * */
+    suspend fun launchAwaitOrNull(init : CropImageConfig.()->Unit) : File?{
         val config = CropImageConfig().also(init)
         config.outputFile?:run {
             //使用默认输出地址
             config.outputFile = createCropImgSaveFile()
         }
-        launch(config) { result ->
-            config.callBack?.invoke(result)
-        }
+        return launchAwaitOrNull(config)
     }
 
     /**

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".MainActivity"
+        android:orientation="vertical"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        >
+        <Button
+            android:id="@+id/btn_coroutine_request_multi_permission"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="测试请求权限"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+        <Button
+            android:id="@+id/btn_coroutine_navi_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="测试ResultAPI跳转"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+        <Button
+            android:id="@+id/btn_coroutine_take_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="调用系统相机"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+
+        <Button
+            android:id="@+id/btn_coroutine_pick_content"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Pick Content选择图片"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+
+        <Button
+            android:id="@+id/btn_coroutine_pick_contact"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="选择联系人"
+            android:textSize="15sp"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+
+        <Button
+            android:id="@+id/btn_coroutine_get_image_content"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Get Content多选图片"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+
+        <Button
+            android:id="@+id/btn_coroutine_call_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="跳转拨号页面"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:layout_marginTop="10dp"
+            tools:ignore="HardcodedText"
+            />
+
+
+    </LinearLayout>
+</ScrollView>

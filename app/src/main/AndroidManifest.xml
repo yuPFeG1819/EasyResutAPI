@@ -37,6 +37,9 @@
 
         <activity android:name=".TestResultApiActivity"/>
 
+        <activity android:name=".NormalUseActivity"/>
+        <activity android:name=".CoroutineUseActivity"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileProvider"

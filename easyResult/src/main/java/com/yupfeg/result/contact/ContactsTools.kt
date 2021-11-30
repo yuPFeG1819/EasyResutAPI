@@ -3,7 +3,6 @@ package com.yupfeg.result.contact
 import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
-import java.io.Serializable
 
 /**
  * 系统联系人相关工具类
@@ -12,60 +11,6 @@ import java.io.Serializable
  */
 @Suppress("unused")
 object ContactsTools {
-    /**
-     * 通讯录的列表实体
-     * @author yuPFeG
-     * @date 2021/09/02
-     */
-    data class ContactUserBean(
-        /**本地通讯录id*/
-        val contactId : Long,
-        /**本地通讯录的备注名称*/
-        val localUserName : String? = null,
-        /**本地通讯录的手机号*/
-        val phone : String,
-    ) : Serializable
-
-    /**
-     * 查询本地通讯录联系人数据
-     * * 推荐在子线程执行
-     * @param context
-     * @return 系统通讯录的实体集合
-     * */
-    @JvmStatic
-    fun queryLocalContactsList(context: Context) : List<ContactUserBean>{
-        val contactsList = mutableListOf<ContactUserBean>()
-        val cursor = context.contentResolver.query(
-            ContactsContract.Contacts.CONTENT_URI,
-            null,null,
-            null,null
-        )
-        cursor?:return contactsList
-
-        while (cursor.moveToNext()){
-            //取得联系人名称、手机号、id
-            val contactId = cursor.getString(
-                cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID)
-            )
-            val name = cursor.getString(
-                cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME)
-            )
-            val phone = obtainFirstPhoneString(context, contactId)
-
-            //过滤手机号为空的联系人
-            if (phone.isNullOrEmpty()) continue
-
-            val userBean = ContactUserBean(
-                contactId = contactId.toLongOrNull()?:-1,
-                localUserName = name,
-                phone = phone
-            )
-            contactsList.add(userBean)
-        }
-        cursor.close()
-        return contactsList
-    }
-
     /**
      * 查询指定联系人Uri的联系人信息
      * @param context [Context]

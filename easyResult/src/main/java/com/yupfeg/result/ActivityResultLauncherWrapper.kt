@@ -43,7 +43,7 @@ open class ActivityResultLauncherWrapper<Input,Output>(
      * @param input intent跳转传递的参数类型
      * @param callback intent跳转返回回调
      * */
-    open fun launch(input: Input,callback: ActivityResultCallback<Output>?){
+    open fun launch(input: Input?,callback: ActivityResultCallback<Output>?){
         launch(input,null,callback)
     }
 
@@ -54,7 +54,7 @@ open class ActivityResultLauncherWrapper<Input,Output>(
      * @param callback intent跳转返回回调
      * */
     open fun launch(
-        input : Input,
+        input : Input?,
         options : ActivityOptionsCompat? = null,
         callback: ActivityResultCallback<Output>?
     ) {

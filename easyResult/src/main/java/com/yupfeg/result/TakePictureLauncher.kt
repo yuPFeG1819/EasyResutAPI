@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContracts
+import com.yupfeg.result.ext.launchAwaitOrNull
 import com.yupfeg.result.file.FileUriTools
 import com.yupfeg.result.file.getUriFromFile
 import java.io.File
@@ -38,6 +39,17 @@ open class TakePictureLauncher(
                 callBack.onActivityResult(null)
             }
         }
+    }
+
+    /**
+     * 调起系统相机拍照，并等待相机拍照返回
+     * @return 保存拍照文件的完整地址，如果拍照不成功或者文件不存在，则返回null
+     * */
+    open suspend fun launchAwaitOrNull() : String?{
+        val saveFile = createCameraSaveFile()
+        val fileUri = getUriFromFile(requireContext(),saveFile)
+        val isSuccess = launchAwaitOrNull(fileUri)
+        return if (isSuccess == true) saveFile.absolutePath else null
     }
 
     /**

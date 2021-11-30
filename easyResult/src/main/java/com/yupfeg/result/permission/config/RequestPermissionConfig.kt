@@ -1,4 +1,4 @@
-package com.yupfeg.result.permission
+package com.yupfeg.result.permission.config
 
 import com.yupfeg.result.permission.dialog.PermissionRationaleDialogFragment
 
@@ -8,7 +8,7 @@ import com.yupfeg.result.permission.dialog.PermissionRationaleDialogFragment
  * @author yuPFeG
  * @date 2021/10/15
  */
-class RequestPermissionConfig{
+open class RequestPermissionConfig{
 
     /**
      * 请求的权限集合，集合为空则不会发起权限请求
@@ -17,15 +17,9 @@ class RequestPermissionConfig{
     var permissions : Array<String>? = null
 
     /**
-     * 是否在权限请求前，显示权限请求原因的弹窗
-     * * 需要配合[rationaleDialogFragment],该弹窗会在允许后，调用权限请求
-     * */
-    @JvmField
-    var isShowRationalDialog : Boolean = false
-
-    /**
      * 是否在权限请求拒绝后，显示权限请求原因的弹窗，
-     * * * 需要配合[rationaleDialogFragment],该弹窗会在允许后，再次请求权限
+     * * 需要配合[rationaleDialogFragment],该弹窗会在允许后，再次请求权限
+     * * 配合[forwardSettingDialogFragment]，该弹窗会在允许后，跳转到系统应用权限页
      * */
     @JvmField
     var isShowRationalDialogAfterDefined : Boolean = false
@@ -39,26 +33,13 @@ class RequestPermissionConfig{
     var rationaleDialogFragment : PermissionRationaleDialogFragment? = null
 
     /**
-     * 导航到系统设置页说明弹窗，仅在所有权限都为永久拒绝时生效，默认为null
+     * 导航到系统设置页说明弹窗，仅在所拒绝的权限都为永久拒绝时生效，默认为null
      * * 在遇到永久拒绝的权限时，会弹出提示弹窗，并在确认后跳转到系统设置页
-     * * 推荐外部不需要每次创建新对象，可以通过非空判断，在视图作用域范围内创建一次'单例'，
+     * * 推荐外部不需要每次创建新对象，可以通过非空判断，在视图作用域范围内创建一个'单例'，
      * 在视图声明周期结束时，将其dismiss与置空
      * */
     @JvmField
     var forwardSettingDialogFragment : PermissionRationaleDialogFragment? = null
-
-    /**
-     * 所有权限都允许时的回调接口
-     * */
-    @JvmField
-    var onAllGrantedAction : (()->Unit)? = null
-
-    /**
-     * 当次请求被拒绝权限回调，返回已被拒绝的权限集合
-     * * 包含永久拒绝不再提醒的权限，需要引导用户到系统权限设置页
-     */
-    @JvmField
-    var onDeniedAction : ((List<String>)->Unit)? = null
 
     /**
      * 设置需要请求的权限

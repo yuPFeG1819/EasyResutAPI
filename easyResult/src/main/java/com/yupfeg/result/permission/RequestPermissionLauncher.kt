@@ -1,18 +1,15 @@
 package com.yupfeg.result.permission
 
-import android.app.Activity
-import android.content.pm.PackageManager
 import androidx.activity.result.ActivityResultCaller
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import com.yupfeg.result.permission.dialog.PermissionRationaleDialogFragment
-import com.yupfeg.result.ActivityResultLauncherWrapper
 import com.yupfeg.result.StartActivityResultLauncher
+import com.yupfeg.result.ext.launchAppDetailSettingAwait
 import com.yupfeg.result.ext.launchAppDetailSettings
+import com.yupfeg.result.ext.launchAwait
+import com.yupfeg.result.permission.config.RequestPermissionConfig
+import com.yupfeg.result.permission.config.RequestPermissionResultConfig
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 /**
  * 动态请求权限的启动器
@@ -23,19 +20,19 @@ import com.yupfeg.result.ext.launchAppDetailSettings
 @Suppress("unused")
 open class RequestPermissionLauncher(
     caller : ActivityResultCaller
-) : ActivityResultLauncherWrapper<Array<String>, Map<String, Boolean>>(
-    caller, ActivityResultContracts.RequestMultiplePermissions()
-){
+) : BaseRequestPermissionLauncher(caller){
 
     /**跳转到app系统设置页的启动器*/
     private val mSettingsLauncher = StartActivityResultLauncher(caller)
+
+    // <editor-fold desc="对外普通函数">
 
     /**
      * 发起权限请求
      * @param init 以kotlin dsl的方式进行权限请求的配置
      * */
-    open fun launchRequest(init : RequestPermissionConfig.()->Unit){
-        val config = RequestPermissionConfig().also(init)
+    open fun launchRequest(init : RequestPermissionResultConfig.()->Unit){
+        val config = RequestPermissionResultConfig().also(init)
         launchRequest(config)
     }
 
@@ -48,32 +45,83 @@ open class RequestPermissionLauncher(
         if (requestConfig.permissions.isNullOrEmpty()) {
             throw NullPointerException("request permission is null ,check your code!")
         }
-
-        if (!requestConfig.isShowRationalDialog){
+        val dialogFragment = requestConfig.rationaleDialogFragment
+        dialogFragment ?:run {
             //不需要显示申请原因弹窗，直接请求权限
             performRequestPermission(requestConfig)
             return
         }
+        val requestPermissions = requestConfig.permissions!!.toList()
+        val needRequestList = getNeedRequestPermissions(requestPermissions)
+
+        val callBackConfig = (requestConfig as? RequestPermissionResultConfig)
+        if (needRequestList.isNullOrEmpty()){
+            //如果所有权限已允许，不需要弹窗
+            callBackConfig?.onAllGrantedAction?.invoke()
+            return
+        }
 
         //发起请求前，需要显示请求理由说明弹窗
-        val requestPermissions = requestConfig.permissions!!.toList()
-        val deniedList = getNeedRequestPermissions(requestPermissions)
-        requestConfig.rationaleDialogFragment?.also {dialogFragment->
-            showRationaleDialog(
-                deniedList,
-                dialogFragment,
-                onPositive = {
-                    //申请权限
-                    performRequestPermission(requestConfig)
-                },
-                onNegative = {
-                    requestConfig.onDeniedAction?.invoke(deniedList)
-                }
-            )
-        }?:run {
-            requestConfig.onDeniedAction?.invoke(deniedList)
-        }
+        dialogFragment.showRationaleDialog(
+            needRequestList,
+            onPositive = {
+                //申请权限
+                performRequestPermission(requestConfig)
+            },
+            onNegative = {
+                callBackConfig?.onDeniedAction?.invoke(needRequestList)
+            }
+        )
     }
+
+    // </editor-fold>
+
+    // <editor-fold desc="对外Kotlin协程支持">
+
+    /**
+     * 发起权限请求，并挂起等待请求结果
+     * @param init 以kotlin dsl的方式进行权限请求的配置
+     * @return 已拒绝的权限集合，如果为空集合，则表示全部权限已请求通过。
+     */
+    open suspend fun launchRequestAwait(init : RequestPermissionConfig.()->Unit) : List<String>{
+        val config = RequestPermissionConfig().also(init)
+        return launchRequestAwait(config)
+    }
+
+    /**
+     * 发起权限请求，并挂起等待请求结果
+     * @param requestConfig 请求权限配置类
+     * @return 已拒绝的权限集合，如果为空集合，则表示全部权限已请求通过。
+     * */
+    open suspend fun launchRequestAwait(requestConfig: RequestPermissionConfig) : List<String>{
+        if (requestConfig.permissions.isNullOrEmpty()) {
+            throw NullPointerException("request permission is null ,check your code!")
+        }
+
+        val dialogFragment = requestConfig.rationaleDialogFragment
+        dialogFragment?:run {
+            //不需要显示申请原因弹窗，直接请求权限
+            return performRequestPermissionAwait(requestConfig)
+        }
+
+        val requestPermissions = requestConfig.permissions!!.toList()
+        val needRequestList = getNeedRequestPermissions(requestPermissions)
+        if (needRequestList.isNullOrEmpty()){
+            //所有权限已允许，不需要显示弹窗，直接返回
+            return emptyList()
+        }
+
+        //发起请求前，需要显示请求理由说明弹窗
+        val isPositive = dialogFragment.showRationaleDialogAwait(needRequestList)
+        if (!isPositive){
+            //拒绝申请权限，原样返回
+            return requestPermissions
+        }
+        //申请权限并挂起等待结果
+        return performRequestPermissionAwait(requestConfig)
+    }
+
+    // </editor-fold>
 
     /**
      * 获取需要申请（未允许）的权限集合
@@ -87,14 +135,28 @@ open class RequestPermissionLauncher(
     }
 
     /**
-     * 执行动态请求权限
+     * 执行动态权限请求
      * @param requestConfig 请求权限配置
      * */
     @Suppress("MemberVisibilityCanBePrivate")
     protected open fun performRequestPermission(requestConfig: RequestPermissionConfig){
-        launch(requestConfig.permissions!!){map->
+        assert(requestConfig.permissions?.isNotEmpty() == true)
+        launch(requestConfig.permissions){map->
             processRequestPermissionResult(requestConfig,map)
         }
+    }
+
+    /**
+     * 执行动态权限请求，并挂起等待请求结果
+     * @param requestConfig 请求权限配置
+     * @return 已拒绝的权限集合，如果为空集合，则表示全部权限已请求通过。
+     * */
+    protected open suspend fun performRequestPermissionAwait(
+        requestConfig: RequestPermissionConfig
+    ) : List<String>{
+        assert(requestConfig.permissions?.isNotEmpty() == true)
+        val map = launchAwait(requestConfig.permissions)
+        return processRequestPermissionResultAwait(requestConfig,map)
     }
 
     /**
@@ -106,103 +168,57 @@ open class RequestPermissionLauncher(
         requestConfig: RequestPermissionConfig,
         grantResults: Map<String, Boolean>
     ){
-        if (!grantResults.containsValue(false)){
-            //所有权限都通过
-            requestConfig.onAllGrantedAction?.invoke()
+        val resultConfig = requestConfig as? RequestPermissionResultConfig
+        val onAllGrantedAction = resultConfig?.onAllGrantedAction
+        val onDeniedAction = resultConfig?.onDeniedAction
+
+        if (!grantResults.containsValue(false)) {
+            //快速通道，所有权限都通过
+            onAllGrantedAction?:throw NullPointerException("granted action is null")
+            onAllGrantedAction()
             return
         }
-        //需要显示请求权限说明的权限集合
-        val showRationalPermissions = mutableListOf<String>()
-        //永久拒绝的权限集合
-        val permanentDeniedPermissions = mutableListOf<String>()
-        val definedPermissions = mutableListOf<String>()
-        for ((permission, granted) in grantResults) {
-            if (granted) continue
-            if (caller.shouldShowRequestPermissionRationale(permission)){
-                //需要显示解释说明
-                showRationalPermissions.add(permission)
-            }else{
-                //永久拒绝的权限
-                permanentDeniedPermissions.add(permission)
-            }
-            definedPermissions.add(permission)
-        }
+        //分类权限请求结果
+        val triple = classifyRequestPermissionResult(grantResults)
 
-        when {
-            showRationalPermissions.isNotEmpty() -> {
-                //存在需要解释请求理由的被拒绝权限
-                processRationalePermissions(
-                    requestConfig,
-                    showRationalPermissions,
-                    permanentDeniedPermissions
-                )
-            }
-            permanentDeniedPermissions.isNotEmpty() -> {
-                //存在永久拒绝的权限
-                processPermanentDeniedPermissions(
-                    requestConfig,
-                    permanentDeniedPermissions,
-                    definedPermissions
-                )
-            }
-            else -> {
-                //兜底的请求权限失败回调
-                requestConfig.onDeniedAction?.invoke(definedPermissions)
-            }
-        }
-    }
-
-    /**
-     * 处理需要解释请求原因的权限
-     * @param requestConfig 请求参数配置
-     * @param rationalePermission 需要解释理由的权限集合
-     * @param definedPermissions 所有被拒绝的权限集合
-     *
-     * */
-    private fun processRationalePermissions(
-        requestConfig: RequestPermissionConfig,
-        rationalePermission : List<String>,
-        definedPermissions : List<String>
-    ) {
-        if (!requestConfig.isShowRationalDialogAfterDefined) {
-            //不需要在拒绝后显示请求原因弹窗
-            requestConfig.onDeniedAction?.invoke(definedPermissions)
+        //快速通道，即不存在需要解释的权限也不存在永久拒绝的权限，直接返回已拒绝权限集合
+        if (triple.first.isNullOrEmpty() && triple.second.isNullOrEmpty()){
+            onDeniedAction?.invoke(triple.third)
             return
         }
 
-        requestConfig.rationaleDialogFragment?.also {dialogFragment->
-            showRationaleDialog(
-                rationalePermission,
-                dialogFragment,
+        if (triple.first.isNotEmpty()){
+            //存在需要解释请求理由的被拒绝权限
+            val dialogFragment = if (requestConfig.isShowRationalDialogAfterDefined)
+                requestConfig.rationaleDialogFragment else null
+            //不需要显示解释理由弹窗，则直接返回所有拒绝的权限集合
+            dialogFragment?: run{
+                onDeniedAction?.invoke(triple.third)
+                return
+            }
+
+            dialogFragment.showRationaleDialog(
+                requestPermissions = triple.first,
                 onPositive = {
                     //再次请求权限
                     performRequestPermission(requestConfig)
                 },
                 onNegative = {
-                    requestConfig.onDeniedAction?.invoke(definedPermissions)
+                    onDeniedAction?.invoke(triple.third)
                 }
             )
-        }?:run {
-            //不需要在拒绝后显示请求原因弹窗
-            requestConfig.onDeniedAction?.invoke(definedPermissions)
-        }
-    }
+        }else if (triple.second.isNotEmpty()){
+            //存在永久拒绝的权限
+            val dialogFragment = if (requestConfig.isShowRationalDialogAfterDefined)
+                requestConfig.forwardSettingDialogFragment else null
+            //不需要提示执行永久拒绝的权限，则直接返回所有拒绝的权限集合
+            dialogFragment?: run{
+                onDeniedAction?.invoke(triple.third)
+                return
+            }
 
-    /**
-     * 处理被永久拒绝的权限
-     * @param requestConfig 请求参数配置
-     * @param permanentDeniedPermissions 需要解释理由的权限集合
-     * @param definedPermissions 所有被拒绝的权限集合
-     * */
-    private fun processPermanentDeniedPermissions(
-        requestConfig: RequestPermissionConfig,
-        permanentDeniedPermissions : List<String>,
-        definedPermissions: List<String>
-    ){
-        requestConfig.forwardSettingDialogFragment?.also {dialogFragment->
-            showRationaleDialog(
-                permanentDeniedPermissions,
-                dialogFragment,
+            dialogFragment.showRationaleDialog(
+                requestPermissions = triple.first,
                 onPositive = {
                     //引导跳转到App系统设置详情页，引导用户开启权限
                     mSettingsLauncher.launchAppDetailSettings {
@@ -211,91 +227,75 @@ open class RequestPermissionLauncher(
                     }
                 },
                 onNegative = {
-                    requestConfig.onDeniedAction?.invoke(definedPermissions)
+                    onDeniedAction?.invoke(triple.third)
                 }
             )
-        }?:run {
-            requestConfig.onDeniedAction?.invoke(definedPermissions)
         }
     }
 
     /**
-     * 显示权限请求理由弹窗
+     * 处理请求权限结果，并挂起等待处理逻辑
+     * @param requestConfig 权限请求配置
+     * @param grantResults 权限请求返回结果
+     * @return 已拒绝的权限集合，如果为空集合，则表示全部权限已请求通过。
+     * */
+    private suspend fun processRequestPermissionResultAwait(
+        requestConfig: RequestPermissionConfig,
+        grantResults: Map<String, Boolean>
+    ) : List<String>{
+        if (!grantResults.containsValue(false)) {
+            //快速通道，所有权限都通过
+            return emptyList()
+        }
+        //分类权限请求结果
+        val triple = classifyRequestPermissionResult(grantResults)
+        //快速通道，即不存在需要解释的权限也不存在永久拒绝的权限，直接返回所有已拒绝权限集合
+        if (triple.first.isNullOrEmpty() && triple.second.isNullOrEmpty()) return triple.third
+
+        if (triple.first.isNotEmpty()){
+            //存在需要解释请求理由的被拒绝权限
+            val dialogFragment = if (requestConfig.isShowRationalDialogAfterDefined)
+                requestConfig.rationaleDialogFragment else null
+            //不需要显示解释理由弹窗，则直接返回所有拒绝的权限集合
+            dialogFragment?: return triple.third
+
+            val isPositive = dialogFragment.showRationaleDialogAwait(triple.first)
+            if (isPositive){
+                //确认弹窗，再次发起权限请求
+                return performRequestPermissionAwait(requestConfig)
+            }
+            return triple.third
+        }else if (triple.second.isNotEmpty()){
+            //存在永久拒绝的权限
+            val dialogFragment = requestConfig.forwardSettingDialogFragment
+            dialogFragment?: return triple.third
+
+            val isPositive = dialogFragment.showRationaleDialogAwait(triple.first)
+            if (isPositive){
+                //弹窗确认，跳转到App系统设置详情页，引导用户开启权限
+                mSettingsLauncher.launchAppDetailSettingAwait()
+                //等待页面返回后，再次申请被永久拒绝的权限
+                return performRequestPermissionAwait(requestConfig)
+            }
+            return triple.third
+        }
+        return emptyList()
+    }
+
+    /**
+     * [PermissionRationaleDialogFragment]拓展方法，显示权限请求理由弹窗，并挂起等待弹窗结果
      * @param requestPermissions 当前需要请求的权限（过滤已允许的权限与永久拒绝的权限）
-     * @param dialogFragment 申请理由说明弹窗
-     * @param onPositive 确认按钮点击回调
-     * @param onNegative 取消按钮点击回调
+     * @return true-点击弹窗确认按钮，继续申请权限；false-点击弹窗取消按钮，中断申请流程
      * */
-    private fun showRationaleDialog(
-        requestPermissions : List<String>,
-        dialogFragment : PermissionRationaleDialogFragment,
-        onPositive : ()->Unit,
-        onNegative : ()->Unit,
-    ){
-        dialogFragment.apply {
-            showNow(caller.getFragmentManager(),"PermissionRationaleDialogFragment")
-            dialogFragment.setRequestPermissions(requestPermissions)
-            isCancelable = false
-            //确认按钮
-            getPositiveView().apply {
-                isClickable = true
-                setOnClickListener {
-                    dialogFragment.dismiss()
-                    onPositive.invoke()
-                }
-            }
-            //取消按钮
-            getNegativeView()?.apply {
-                isClickable = true
-                setOnClickListener {
-                    dialogFragment.dismiss()
-                    onNegative.invoke()
-                }
-            }
-        }
+    private suspend fun PermissionRationaleDialogFragment.showRationaleDialogAwait(
+        requestPermissions : List<String>
+    ) = suspendCancellableCoroutine<Boolean> {cont->
+        showRationaleDialog(
+            requestPermissions,
+            onPositive = { cont.resume(true) },
+            onNegative = { cont.resume(false) }
+        )
     }
 
-    /**
-     * [ActivityResultCaller]的拓展函数，校验指定权限是否需要显示权限说明
-     * @param permission 权限名称
-     * */
-    private fun ActivityResultCaller.shouldShowRequestPermissionRationale(permission: String) =
-        when (this) {
-            is Activity -> shouldShowRequestPermissionRationale(this, permission)
-            is Fragment -> shouldShowRequestPermissionRationale(requireActivity(), permission)
-            else -> false
-        }
 
-    /**
-     * [ActivityResultCaller]的拓展函数，校验指定权限是否已同意
-     * @param permission 权限名称
-     * */
-    private fun ActivityResultCaller.checkPermissionGranted(permission: String) : Boolean{
-        return when (this) {
-            is Activity -> {
-                ActivityCompat.checkSelfPermission(
-                    this,permission
-                ) == PackageManager.PERMISSION_GRANTED
-            }
-            is Fragment -> {
-                ActivityCompat.checkSelfPermission(
-                    requireActivity(),permission
-                ) == PackageManager.PERMISSION_GRANTED
-            }
-            else -> false
-        }
-    }
-
-    /**
-     * [ActivityResultCaller]的拓展函数，获取fragment的管理类对象
-     * */
-    protected open fun ActivityResultCaller.getFragmentManager() : FragmentManager {
-        return when(this){
-            is FragmentActivity -> this.supportFragmentManager
-            is Fragment -> this.childFragmentManager
-            else -> throw IllegalArgumentException(
-                "ActivityResultCaller must is FragmentActivity or Fragment"
-            )
-        }
-    }
 }

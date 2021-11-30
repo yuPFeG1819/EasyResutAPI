@@ -85,7 +85,6 @@ class DefaultRationaleDialogFragment @JvmOverloads constructor(
      * @param permissions 权限集合(过滤已允许和永久拒绝的)
      * */
     override fun doOnRequestPermissionUpdate(permissions: List<String>) {
-//        val newItemData = createPermissionListData()
         mListAdapter.setPermissionList(createPermissionListData())
     }
 
