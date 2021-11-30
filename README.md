@@ -30,6 +30,16 @@ dependencies {
 
 ```
 
+## 更新记录
+
+**1.1.0**
+
+1. 新增`Kotlin Coroutine`的支持
+
+2. 优化动态权限请求处理逻辑，并分离提取`kotlin-dsl`配置类的回调函数变量。
+
+
+
 
 
 ## 使用
@@ -44,7 +54,7 @@ dependencies {
 
 > `ActivityResultCaller.registerForActivityResult()`方法只能在`onStart`生命周期前执行，所以包装类的初始化也需要在页面创建时进行创建。
 
-### 常用ResultAPI场景封装 
+### 常用ResultAPI场景封装
 
 - 页面跳转返回 `StartActivityResultLauncher`
 
@@ -76,7 +86,7 @@ dependencies {
 
 ## TODO
 
-- 添加**kotlin coroutines**的拓展，进一步简化回调处理方式
+- ~~添加**kotlin coroutines**的拓展，进一步简化回调处理方式~~（1.1.0已更新）
 
 - 添加更多常用ResultAPI使用场景封装
 
