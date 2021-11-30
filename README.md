@@ -34,11 +34,9 @@ dependencies {
 
 **1.1.0**
 
-1. 新增`Kotlin Coroutine`的支持
-
+1. 新增`Kotlin Coroutine`的支持（以`implementation`方式添加依赖）
+   
 2. 优化动态权限请求处理逻辑，并分离提取`kotlin-dsl`配置类的回调函数变量。
-
-
 
 
 
@@ -60,7 +58,7 @@ dependencies {
 
   > 同时提供拓展函数，添加了常用的系统页面跳转
 
-- 调起系统相机拍照 `TakePickure`
+- 调起系统相机拍照 `TakePictureLauncher`
 
 - 调起系统剪裁：`CropImageLauncher`
 
@@ -77,6 +75,12 @@ dependencies {
   > - 提供了kotlin dsl方式的请求权限配置`RequestPermissionConfig`
   > - 提供默认实现的解释申请权限原因的说明弹窗
 
+  
+自v1.1.0之后，提供了`launchAwait`与`launchAwaitOrNull`两种挂起函数方式。
+- `launchAwait`会挂起等待返回，返回值为null时抛出异常
+- `launcheAwaitOrNull`同样会挂起等待返回，允许返回值为null
+  
+  > 根据具体`Launcher`会有些许差异，详细使用方式可查看演示demo
 
 ### 更多使用场景
 
